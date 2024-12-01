@@ -11,6 +11,6 @@ let part2 content =
 ;;
 
 let () =
-  let content = input_string "bin/inputs/day01.txt" in
+  let content = input_string "bin/inputs/${DAY}.txt" in
   content |> part1;
   content |> part2

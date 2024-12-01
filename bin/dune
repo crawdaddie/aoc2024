@@ -1,9 +1,5 @@
-(executables
- (public_names day01)
- (names day01)
+(executable
+ (public_name day01)
+ (name day01)
  (libraries util))
 
-(executable
- (public_name day02)
- (name day02)
- (libraries util))
