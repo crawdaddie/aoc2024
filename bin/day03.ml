@@ -51,7 +51,7 @@ let part2 content =
       (fun (acc, last_do_expr) expr ->
         match expr with
         | Mul (l, r) when last_do_expr = Do -> (acc + (l * r), last_do_expr)
-        | Mul (l, r) when last_do_expr = Dont -> (acc, last_do_expr)
+        | Mul (_, _) when last_do_expr = Dont -> (acc, last_do_expr)
         | Do -> (acc, Do)
         | Dont -> (acc, Dont)
         | _ -> (acc, last_do_expr))
