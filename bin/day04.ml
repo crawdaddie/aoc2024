@@ -46,12 +46,13 @@ let check_for_mas (i, j) matrix =
   | _ -> 0
 
 let part2 matrix =
+  let m, n = matrix_dims matrix in
   ij_fold
     (fun (i, j) acc ->
       let ch = matrix.(i).(j) in
       if ch = 'A' then acc + check_for_mas (i, j) matrix else acc)
-    (1, Array.length matrix - 2)
-    (1, Array.length matrix.(0) - 2)
+    (1, m - 2)
+    (1, n - 2)
     0
 
 let () =
