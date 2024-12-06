@@ -1,11 +1,6 @@
 open Util
 open Printf
 
-let char_matrix content =
-  let lines = content |> String.trim |> String.split_on_char '\n' in
-  let matrix = Array.of_list (List.map array_of_string lines) in
-  matrix
-
 let is_in_bounds i j m n = i < m && i >= 0 && j < n && j >= 0
 
 let get_string_from_matrix (i, j) (di, dj) num matrix =
