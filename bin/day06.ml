@@ -40,8 +40,14 @@ let rec completes_loop coords pos dir =
       let ci, cj = coord in
       if
         match dir with
-        | -1, 0 | 1, 0 -> j = cj && dir = prev_dir
-        | 0, 1 | 0, -1 -> i = ci && dir = prev_dir
+        (* up *)
+        | -1, 0 -> j = cj && ci < i && dir = prev_dir
+        (* down *)
+        | 1, 0 -> j = cj && ci > i && dir = prev_dir
+        (* right *)
+        | 0, 1 -> i = ci && cj > j && dir = prev_dir
+        (* left *)
+        | 0, -1 -> i = ci && cj < j && dir = prev_dir
         | _ -> failwith ""
       then true
       else completes_loop rest pos dir
@@ -62,13 +68,8 @@ let part2 matrix =
 
   let rec traverse pos dir count l =
     let count =
-      if completes_loop l pos (turn_right dir) then (
-        let ni, nj = next pos dir in
-        matrix.(ni).(nj) <- 'O';
-        count + 1)
-      else count
+      if completes_loop l pos (turn_right dir) then count + 1 else count
     in
-
     let next_pos = next pos dir in
     if not (is_in_bounds next_pos dims) then count
     else
@@ -85,6 +86,7 @@ let part2 matrix =
   res
 
 let () =
+  (* let content = input_string "bin/inputs/day06_sml.txt" in *)
   let content = input_string "bin/inputs/day06.txt" in
   let matrix = char_matrix content in
   matrix |> part1 |> printf "part1: %d\n";
