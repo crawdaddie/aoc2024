@@ -67,7 +67,7 @@ all:
 	@echo "Running all available solutions..."
 	@for day in $(DAYS); do \
 		echo "\nExecuting day $$day solution:"; \
-		dune exec day$$day || exit 1; \
+		dune exec day$$day --profile release || exit 1; \
 	done
 
 all_time:

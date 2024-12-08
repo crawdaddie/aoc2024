@@ -97,7 +97,37 @@ let print_char_matrix matrix =
   let m, n = matrix_dims matrix in
   for i = 0 to m - 1 do
     for j = 0 to n - 1 do
-      Printf.printf "%c, " matrix.(i).(j)
+      Printf.printf "%c" matrix.(i).(j)
     done;
     Printf.printf "\n"
   done
+
+let int_log_10 x =
+  let rec aux v c =
+    match v with v when v > 0 -> aux (v / 10) c + 1 | _ -> c
+  in
+  aux x 0
+
+let pow a exp =
+  match exp with
+  | 0 -> 1
+  | 1 -> a
+  | n -> int_of_float (Float.of_int a ** Float.of_int exp)
+
+let concat_numbers a b =
+  let zeros = int_log_10 b in
+
+  let res = (a * pow 10 zeros) + b in
+  (* printf "concat %d %d %d (zeros: %d) \n" a b res zeros; *)
+  res
+
+let is_in_bounds (i, j) (m, n) = i < m && i >= 0 && j < n && j >= 0
+
+let ordered_pairs lst =
+  match lst with
+  | [] | [ _ ] -> []
+  | _ ->
+      List.concat_map
+        (fun i ->
+          List.filter_map (fun j -> if i <> j then Some (i, j) else None) lst)
+        lst
