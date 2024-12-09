@@ -9,7 +9,7 @@ let part1 content =
 let part2 content =
   printf "part2\n";
   printf "%s" content;
-  1;
+  1
 
 let () =
   let content = input_string "bin/inputs/${DAY}.txt" in

@@ -54,9 +54,7 @@ let char_map_from_matrix matrix =
 let part1 matrix =
   (* print_char_matrix matrix; *)
   let m, n = matrix_dims matrix in
-  let vadd (i, j) (k, l) = (i + k, j + l) in
-  let vmul (i, j) a = (i * a, j * a) in
-  let copy = Array.init m (fun i -> Array.init n (fun j -> '.')) in
+  let state = Array.init m (fun i -> Array.init n (fun j -> '.')) in
 
   let compute_antinodes (i, j) (k, l) =
     let vec = (k - i, l - j) in
@@ -64,15 +62,15 @@ let part1 matrix =
       if not (is_in_bounds pos (m, n)) then acc
       else
         let i, j = pos in
-        match copy.(i).(j) with
+        match state.(i).(j) with
         | '.' ->
-            copy.(i).(j) <- '#';
+            state.(i).(j) <- '#';
             acc + 1
         | '#' -> acc
         | _ -> failwith ""
     in
 
-    search (vadd (i, j) (vmul vec 2)) 0
+    search (vadd (i, j) (vdot vec (2, 2))) 0
   in
 
   let map = char_map_from_matrix matrix in
@@ -116,7 +114,6 @@ let part2 matrix =
 let () =
   let content = input_string "bin/inputs/day08.txt" in
   let matrix = char_matrix content in
-  let m, n = matrix_dims matrix in
 
   matrix |> part1 |> printf "part1: %d\n";
   matrix |> part2 |> printf "part2: %d\n"
