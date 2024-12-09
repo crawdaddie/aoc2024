@@ -131,3 +131,7 @@ let ordered_pairs lst =
         (fun i ->
           List.filter_map (fun j -> if i <> j then Some (i, j) else None) lst)
         lst
+
+let vadd (i, j) (k, l) = (i + k, j + l)
+let vscalar_mul (i, j) a = (i * a, j * a)
+let vdot (i, j) (k, l) = (i * k, j * l)
