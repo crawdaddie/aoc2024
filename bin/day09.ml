@@ -1,9 +1,11 @@
 open Util
 open Printf
 
+external process_string : string -> string = "process_string"
+
 let char_to_int ch = int_of_char ch - int_of_char '0'
 
-let part1 content =
+let _part1 content =
   let len = String.length content in
 
   let max_id = len / 2 in
@@ -46,6 +48,10 @@ let part1 content =
   1
 
 let part2 content = 1
+
+let part1 content =
+  let _ = process_string content in
+  1
 
 let () =
   (* let content = input_string "bin/inputs/day09.txt" |> String.trim in *)

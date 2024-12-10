@@ -41,5 +41,11 @@
 (executable
  (public_name day09)
  (name day09)
- (libraries util))
+ (libraries util)
+ (foreign_stubs
+  (language c)
+  (names day09_stubs)
+  (flags (-lm))
+ )
+)
 
