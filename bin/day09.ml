@@ -1,30 +1,61 @@
 open Util
 open Printf
 
+external process_string : string -> string = "process_string"
+
 let char_to_int ch = int_of_char ch - int_of_char '0'
 
-let part1 content =
+let _part1 content =
   let len = String.length content in
-  let num_blocks =
-    String.fold_left (fun acc ch -> acc + char_to_int ch) 0 content
+
+  let max_id = len / 2 in
+  let rec pack_disk disk id =
+    match id with
+    | id when id = max_id ->
+        let num_blocks = char_to_int content.[id * 2] in
+        let chunk = Array.make num_blocks (id + 1) in
+        chunk :: disk
+    | id ->
+        let num_blocks = char_to_int content.[id * 2] in
+        let spaces = char_to_int content.[1 + (id * 2)] in
+        let chunk =
+          Array.append (Array.make num_blocks (id + 1)) (Array.make spaces 0)
+        in
+
+        pack_disk (chunk :: disk) (id + 1)
+    | _ -> failwith ""
   in
-  let disk = Array.init num_blocks (fun i -> -1) in
-  let disk =
-    String.fold_left
-      (fun (offset, disk) ch ->
-        let num_blocks = char_to_int ch in
-        let offset = offset + num_blocks in
-        (offset, disk))
-      (0, disk) content
+  let disk = Array.concat (List.rev (pack_disk [] 0)) in
+  let rec defrag l r =
+    match (l, r) with
+    | l, r when l >= r -> ()
+    | l, r ->
+        let idl = disk.(l) - 1 in
+        let idl_len = char_to_int content.[idl * 2] in
+        let num_spaces = char_to_int content.[1 + (idl * 2)] in
+        let next_space = l + idl_len in
+        printf "idl: %d len: %d spaces: %d\n" idl idl_len next_space;
+
+        defrag (l + 1) (r - 1)
+    | _ -> failwith ""
   in
-  printf "num blocks: %d\n" num_blocks;
+
+  defrag 0 (Array.length disk);
+
+  Array.iter
+    (fun x -> match x with 0 -> printf "." | x -> printf "[%d]" (x - 1))
+    disk;
   1
 
 let part2 content = 1
 
+let part1 content =
+  let _ = process_string content in
+  1
+
 let () =
-  let content = input_string "bin/inputs/day09.txt" in
-  (* let content = "2333133121414131402" in *)
-  (* 00...111...2...333.44.5555.6666.777.888899 *)
-  content |> part1 |> printf "part1: %d\n";
-  content |> part2 |> printf "part2: %d\n"
+  (* let content = input_string "bin/inputs/day09.txt" |> String.trim in *)
+  let content = "2333133121414131402" in
+  (* printf "00...111...2...333.44.5555.6666.777.888899\n"; *)
+  let _ = content |> part1 in
+  ()
