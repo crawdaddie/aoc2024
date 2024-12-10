@@ -1,61 +1,142 @@
 open Util
 open Printf
 
-external process_string : string -> string = "process_string"
+external defrag_disk : string -> int array = "defrag_disk"
 
-let char_to_int ch = int_of_char ch - int_of_char '0'
-
-let _part1 content =
-  let len = String.length content in
-
-  let max_id = len / 2 in
-  let rec pack_disk disk id =
-    match id with
-    | id when id = max_id ->
-        let num_blocks = char_to_int content.[id * 2] in
-        let chunk = Array.make num_blocks (id + 1) in
-        chunk :: disk
-    | id ->
-        let num_blocks = char_to_int content.[id * 2] in
-        let spaces = char_to_int content.[1 + (id * 2)] in
-        let chunk =
-          Array.append (Array.make num_blocks (id + 1)) (Array.make spaces 0)
-        in
-
-        pack_disk (chunk :: disk) (id + 1)
-    | _ -> failwith ""
-  in
-  let disk = Array.concat (List.rev (pack_disk [] 0)) in
-  let rec defrag l r =
-    match (l, r) with
-    | l, r when l >= r -> ()
-    | l, r ->
-        let idl = disk.(l) - 1 in
-        let idl_len = char_to_int content.[idl * 2] in
-        let num_spaces = char_to_int content.[1 + (idl * 2)] in
-        let next_space = l + idl_len in
-        printf "idl: %d len: %d spaces: %d\n" idl idl_len next_space;
-
-        defrag (l + 1) (r - 1)
-    | _ -> failwith ""
-  in
-
-  defrag 0 (Array.length disk);
-
-  Array.iter
-    (fun x -> match x with 0 -> printf "." | x -> printf "[%d]" (x - 1))
-    disk;
-  1
-
-let part2 content = 1
+let checksum disk =
+  Array.fold_left
+    (fun (acc, i) v ->
+      match v with 0 -> (acc, i + 1) | v -> (acc + (i * (v - 1)), i + 1))
+    (0, 0) disk
 
 let part1 content =
-  let _ = process_string content in
+  let disk = defrag_disk content in
+  let sum, _ = checksum disk in
+  sum
+
+let char_to_int ch = Char.code ch - Char.code '0'
+
+let disk_size_in_blocks map =
+  String.fold_left (fun acc ch -> acc + char_to_int ch) 0 map
+
+module DiskMap = struct
+  type 'a node = {
+    id : int;
+    space : int;
+    mutable prev : 'a node option;
+    mutable next : 'a node option;
+  }
+
+  let make strmap =
+    (* First create all nodes with just their data *)
+    let nodes, _ =
+      String.fold_left
+        (fun (l, i) ch ->
+          match i mod 2 with
+          | 0 ->
+              let id = i / 2 in
+              let node =
+                {
+                  id = id + 1;
+                  space = char_to_int strmap.[i];
+                  prev = None;
+                  next = None;
+                }
+              in
+              (node :: l, i + 1)
+          | _ ->
+              let node =
+                {
+                  id = 0;
+                  space = char_to_int strmap.[i];
+                  prev = None;
+                  next = None;
+                }
+              in
+              (node :: l, i + 1))
+        ([], 0) strmap
+    in
+    let tail =
+      match nodes with tail :: _ -> tail | _ -> failwith "input error"
+    in
+
+    let nodes = List.rev nodes in
+
+    let rec link_nodes = function
+      | [] -> ()
+      | [ x ] -> ()
+      | x :: (y :: _ as rest) ->
+          x.next <- Some y;
+          y.prev <- Some x;
+          link_nodes rest
+    in
+    link_nodes nodes;
+
+    List.iter (fun node -> printf "[%d (%d)] " node.id node.space) nodes;
+    let hd = match nodes with hd :: _ -> hd | _ -> failwith "input error" in
+    (hd, tail)
+
+  let print_node node = printf "[%d (%d)] " node.id node.space
+  let next node = node.next
+  let prev node = node.prev
+
+  let replace_node old_node new_node =
+    (* Update the prev links *)
+    new_node.prev <- old_node.prev;
+    (match old_node.prev with
+    | Some prev -> prev.next <- Some new_node
+    | None -> ());
+
+    (* Update the next links *)
+    new_node.next <- old_node.next;
+    (match old_node.next with
+    | Some next -> next.prev <- Some new_node
+    | None -> ());
+
+    (* Clear old node's links *)
+    old_node.prev <- None;
+    old_node.next <- None;
+
+    new_node
+
+  let replace_with_sequence old_node head tail =
+    (* Connect the sequence's head to old_node's prev *)
+    head.prev <- old_node.prev;
+    (match old_node.prev with
+    | Some prev -> prev.next <- Some head
+    | None -> ());
+
+    (* Connect the sequence's tail to old_node's next *)
+    tail.next <- old_node.next;
+    (match old_node.next with
+    | Some next -> next.prev <- Some tail
+    | None -> ());
+
+    (* Clear old node's links *)
+    old_node.prev <- None;
+    old_node.next <- None;
+
+    (head, tail)
+
+  let rec get_next_empty node =
+    match node.id with
+    | 0 -> Some node
+    | _ -> (
+        match node.next with Some node -> get_next_empty node | None -> None)
+end
+
+let part2 content =
+  let hd, tail = DiskMap.make content in
+
+  DiskMap.print_node hd;
+  DiskMap.print_node tail;
+
+  (* let disk = Array.make (disk_size_in_blocks content) 0 in *)
   1
 
 let () =
   (* let content = input_string "bin/inputs/day09.txt" |> String.trim in *)
   let content = "2333133121414131402" in
-  (* printf "00...111...2...333.44.5555.6666.777.888899\n"; *)
-  let _ = content |> part1 in
-  ()
+
+  content |> part1 |> printf "part1: %d\n";
+  content |> part2 |> printf "part2: %d"

@@ -2,18 +2,9 @@
 #include <caml/memory.h>
 #include <caml/misc.h>
 #include <caml/mlvalues.h>
+#include <stdio.h>
 #include <string.h>
 
-void print_disk(int *disk, size_t size) {
-  for (int i = 0; i < size; i++) {
-    if (disk[i] == 0) {
-      printf(".");
-    } else {
-      printf("%d", disk[i] - 1);
-    }
-  }
-  printf("\n");
-}
 int *int_array_set(int *offset, int num_blocks, int val) {
   for (int i = 0; i < num_blocks; i++) {
     offset[i] = val;
@@ -38,20 +29,35 @@ int get_available_space_after(int id, const char *map) {
 }
 
 void defrag(int *disk, size_t size, const char *map, int hd, int tail) {
+  if (hd >= tail) {
+    return;
+  }
 
-  int padding = get_available_space_after(disk[hd], map);
-  hd += get_block_size(disk[hd], map);
-
-  while (hd <= tail) {
-    print_disk(disk, size);
+  int id = disk[hd];
+  if (id == 0 && disk[tail] > 0) {
+    int tval = disk[tail];
+    disk[tail] = 0;
+    disk[hd] = tval;
 
     hd++;
     tail--;
+    return defrag(disk, size, map, hd, tail);
+  } else {
+    if (id > 0) {
+      hd += *(map + ((id - 1) * 2)) - '0';
+    }
+
+    if (disk[tail] == 0) {
+      while (disk[tail] == 0) {
+        tail--;
+      }
+    }
+    return defrag(disk, size, map, hd, tail);
   }
 }
 
-void set_disk_data(const char *hd, const char *tail, const int *disk) {
-  const int *offset = disk;
+void set_disk_data(const char *hd, const char *tail, int *disk) {
+  int *offset = disk;
 
   int id = 1;
 
@@ -73,25 +79,32 @@ void set_disk_data(const char *hd, const char *tail, const int *disk) {
   });
 }
 
-CAMLprim value process_string(value _str) {
+CAMLprim value defrag_disk(value _str) {
   CAMLparam1(_str);
-  // Get C string from OCaml string
+  CAMLlocal1(result);
   const char *str = String_val(_str);
 
   const char *hd = str;
   const char *tail;
   size_t size = 0;
+  int len_input = 0;
   while (*hd) {
     size += *hd - '0';
-    printf("iter: `%c`\n", *hd);
     tail = hd;
+    len_input++;
     hd++;
   }
 
   int disk[size];
   set_disk_data(str, tail, disk);
-  print_disk(disk, size);
 
   hd = str;
-  defrag(disk, size, str);
+  defrag(disk, size, str, 0, size - 1);
+
+  result = caml_alloc(size, 0);
+
+  for (size_t i = 0; i < size; i++) {
+    Store_field(result, i, Val_int(disk[i]));
+  }
+  CAMLreturn(result);
 }
