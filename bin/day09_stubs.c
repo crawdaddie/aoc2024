@@ -78,27 +78,59 @@ void set_disk_data(const char *hd, const char *tail, int *disk) {
     offset = int_array_set(offset, num_blocks, id);
   });
 }
+void defrag_intact(int *disk, int disk_size, int *map, int map_size,
+                   int disk_hd, int map_hd, int disk_tl, int map_tl) {
 
-CAMLprim value defrag_disk(value _str) {
+  int required_size = map[map_tl];
+}
+
+CAMLprim value defrag_disk_intact_files(value _str) {
   CAMLparam1(_str);
   CAMLlocal1(result);
   const char *str = String_val(_str);
-
   const char *hd = str;
   const char *tail;
   size_t size = 0;
-  int len_input = 0;
-  while (*hd) {
-    size += *hd - '0';
-    tail = hd;
-    len_input++;
-    hd++;
+  size_t map_size = strlen(str);
+  int map[map_size];
+
+  for (size_t i = 0; i < map_size; i++) {
+    map[i] = str[i] - '0';
+    size += map[i];
   }
 
   int disk[size];
   set_disk_data(str, tail, disk);
 
-  hd = str;
+  defrag_intact(disk, size, map, map_size, map[0], 1, size - 1, map_size - 1);
+
+  result = caml_alloc(size, 0);
+
+  for (size_t i = 0; i < size; i++) {
+    Store_field(result, i, Val_int(disk[i]));
+  }
+  CAMLreturn(result);
+}
+
+CAMLprim value defrag_disk(value _str) {
+
+  CAMLparam1(_str);
+  CAMLlocal1(result);
+  const char *str = String_val(_str);
+  const char *hd = str;
+  const char *tail;
+  size_t size = 0;
+  size_t map_size = strlen(str);
+  int map[map_size];
+
+  for (size_t i = 0; i < map_size; i++) {
+    map[i] = str[i] - '0';
+    size += map[i];
+  }
+
+  int disk[size];
+  set_disk_data(str, tail, disk);
+
   defrag(disk, size, str, 0, size - 1);
 
   result = caml_alloc(size, 0);
