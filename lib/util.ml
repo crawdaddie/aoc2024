@@ -83,6 +83,12 @@ let ch_matrix_find ch matrix =
   in
   loop 0 0
 
+let matrix_find_all f matrix =
+  matrix_fold
+    (fun (i, j) map l ->
+      match f map.(i).(j) with true -> (i, j) :: l | false -> l)
+    matrix []
+
 let ch_matrix_find_exn ch matrix =
   let m, n = matrix_dims matrix in
   let rec loop i j =
@@ -122,6 +128,7 @@ let concat_numbers a b =
   res
 
 let is_in_bounds (i, j) (m, n) = i < m && i >= 0 && j < n && j >= 0
+let in_bounds (m, n) (i, j) = i < m && i >= 0 && j < n && j >= 0
 
 let ordered_pairs lst =
   match lst with
@@ -135,3 +142,4 @@ let ordered_pairs lst =
 let vadd (i, j) (k, l) = (i + k, j + l)
 let vscalar_mul (i, j) a = (i * a, j * a)
 let vdot (i, j) (k, l) = (i * k, j * l)
+let char_to_int ch = Char.code ch - Char.code '0'

@@ -78,18 +78,22 @@ void set_disk_data(const char *hd, const char *tail, int *disk) {
     offset = int_array_set(offset, num_blocks, id);
   });
 }
+
 void defrag_intact(int *disk, int disk_size, int *map, int map_size,
                    int disk_hd, int map_hd, int disk_tl, int map_tl) {
-
   int required_size = map[map_tl];
+  int available_size = map[map_hd];
+  if (available_size >= required_size) {
+  }
+  printf("required: %d avail: %d\n", required_size, available_size);
 }
 
-CAMLprim value defrag_disk_intact_files(value _str) {
+CAMLprim value defrag2(value _str) {
   CAMLparam1(_str);
   CAMLlocal1(result);
   const char *str = String_val(_str);
   const char *hd = str;
-  const char *tail;
+  const char *tail = str;
   size_t size = 0;
   size_t map_size = strlen(str);
   int map[map_size];
@@ -98,45 +102,53 @@ CAMLprim value defrag_disk_intact_files(value _str) {
     map[i] = str[i] - '0';
     size += map[i];
   }
+  tail = str + (map_size - 1);
+  printf("tail %c\n", *tail);
 
   int disk[size];
   set_disk_data(str, tail, disk);
 
   defrag_intact(disk, size, map, map_size, map[0], 1, size - 1, map_size - 1);
 
-  result = caml_alloc(size, 0);
+  int checksum = 0;
+  for (int i = 0; i < size; i++) {
+    int v = disk[i];
 
-  for (size_t i = 0; i < size; i++) {
-    Store_field(result, i, Val_int(disk[i]));
+    if (v != 0) {
+      checksum += (i * (v - 1));
+    }
   }
-  CAMLreturn(result);
+
+  CAMLreturn(checksum);
 }
 
 CAMLprim value defrag_disk(value _str) {
-
   CAMLparam1(_str);
-  CAMLlocal1(result);
   const char *str = String_val(_str);
   const char *hd = str;
   const char *tail;
   size_t size = 0;
-  size_t map_size = strlen(str);
-  int map[map_size];
+  int map_size = 0;
+  printf("defrag: %c\n", *hd);
 
-  for (size_t i = 0; i < map_size; i++) {
-    map[i] = str[i] - '0';
-    size += map[i];
+  while (*hd) {
+    size += *hd - '0';
+    map_size++;
+    hd++;
   }
+  tail = hd - 1;
 
   int disk[size];
   set_disk_data(str, tail, disk);
-
   defrag(disk, size, str, 0, size - 1);
 
-  result = caml_alloc(size, 0);
+  int checksum = 0;
+  for (int i = 0; i < size; i++) {
+    int v = disk[i];
 
-  for (size_t i = 0; i < size; i++) {
-    Store_field(result, i, Val_int(disk[i]));
+    if (v != 0) {
+      checksum += (i * (v - 1));
+    }
   }
-  CAMLreturn(result);
+  return Val_int(checksum);
 }

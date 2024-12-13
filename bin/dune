@@ -49,3 +49,18 @@
  )
 )
 
+
+(executable
+ (public_name day10)
+ (name day10)
+ (libraries util))
+(executable
+ (public_name day11)
+ (name day11)
+ (libraries util))
+
+(executable
+ (public_name day12)
+ (name day12)
+ (libraries util))
+
