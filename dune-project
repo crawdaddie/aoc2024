@@ -19,7 +19,7 @@
  (name aoc2024)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune)
+ (depends ocaml dune owl)
  (tags
   (topics "to describe" your project)))
 
