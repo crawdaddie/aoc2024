@@ -59,6 +59,18 @@ let part1 matrix =
   done;
   !sum
 
+(**
+
+...
+.a. -> diffs [1,1,1,1,1,1,1,1] -> 4 corners
+...
+
+.aa
+.aa -> diffs [1,0,0,0,0,0,1,1] -> 4 corners
+.aa
+
+*)
+
 let count_corners (i, j) matrix =
   let char = matrix.(i).(j) in
   let neighbors =
@@ -66,11 +78,11 @@ let count_corners (i, j) matrix =
       (i - 1, j - 1);
       (i - 1, j);
       (i - 1, j + 1);
-      (i, j - 1);
       (i, j + 1);
-      (i + 1, j - 1);
-      (i + 1, j);
       (i + 1, j + 1);
+      (i + 1, j);
+      (i + 1, j - 1);
+      (i, j - 1);
     ]
   in
 
@@ -80,7 +92,39 @@ let count_corners (i, j) matrix =
       (fun (i, j) -> (not (in_bounds dims (i, j))) || matrix.(i).(j) <> char)
       neighbors
   in
-  match List.length diff_count with 0 -> 0 | 8 -> 4 | 7 -> 2 | 6 -> 2 | 5 -> 2 | 4 -> 1 | 3 -> 1 | 
+  (* match List.length diff_count with 0 -> 0 | 8 -> 4 | 7 -> 2 | 6 -> 2 | 5 -> 2 | 4 -> 1 | 3 -> 1 |  *)
+  0
+
+(* Count corner configurations at a position *)
+let count_corners (i, j) matrix =
+  let dims = matrix_dims matrix in
+  let target_char = matrix.(i).(j) in
+  let neighbors =
+    [|
+      (i - 1, j - 1);
+      (i - 1, j);
+      (i - 1, j + 1);
+      (i, j + 1);
+      (i + 1, j + 1);
+      (i + 1, j);
+      (i + 1, j - 1);
+      (i, j - 1);
+    |]
+  in
+
+  let diff_neighbors =
+    Array.map
+      (fun (i, j) ->
+        if not (in_bounds dims (i, j)) then 1
+        else if matrix.(i).(j) <> target_char then 1
+        else 0)
+      neighbors
+  in
+
+  match diff_neighbors with
+  | [| 1; 1; 1; 1; 1; 1; 1; 1; 1 |] -> 4
+  | [| 0; 0; 0; 0; 0; 0; 0; 0; 0 |] -> 0
+  | _ -> 0
 
 let part2 matrix =
   let m, n = matrix_dims matrix in
@@ -95,6 +139,6 @@ let part2 matrix =
   !sum
 
 let () =
-  let content = input_string "bin/inputs/day12.txt" in
+  let content = input_string "bin/inputs/day12_sml.txt" in
   content |> char_matrix |> part1 |> printf "part1: %d\n";
   content |> char_matrix |> part2 |> printf "part2: %d\n"

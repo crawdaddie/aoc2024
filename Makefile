@@ -44,7 +44,7 @@ bin/inputs/day%.txt:
 		-H 'sec-fetch-site: same-origin' \
 		-H 'sec-fetch-user: ?1' \
 		-H 'upgrade-insecure-requests: 1' \
-		-H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+		-H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36' \
 		> bin/inputs/day$(padded_day).txt
 	@echo "Fetched input to bin/inputs/day$(padded_day).txt"
 

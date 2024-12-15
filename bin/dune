@@ -49,7 +49,6 @@
  )
 )
 
-
 (executable
  (public_name day10)
  (name day10)
@@ -63,4 +62,14 @@
  (public_name day12)
  (name day12)
  (libraries util))
+
+(executable
+ (public_name day13)
+ (name day13)
+ (libraries util))
+
+(executable
+ (public_name day14)
+ (name day14)
+ (libraries util owl))
 
